@@ -195,6 +195,54 @@
       left: -30px;
     }
 
+    /* 弹窗祝福预览区域 */
+    .popup-area {
+      position: relative;
+      height: 220px;
+      margin: 10px 0 4px;
+      background: #fff7fb;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 79, 139, 0.12);
+    }
+
+    .popup-card {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 86%;
+      padding: 12px 14px;
+      border-radius: 18px;
+      background: #ffe4f0;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+      color: #5b2341;
+      font-size: 13px;
+      line-height: 1.5;
+      animation: popupIn 0.4s ease;
+    }
+
+    .popup-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+      font-size: 13px;
+    }
+
+    .popup-text {
+      font-size: 13px;
+    }
+
+    @keyframes popupIn {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, -60%) scale(0.9);
+      }
+      100% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+      }
+    }
+
     #confettiCanvas {
       pointer-events: none;
       position: fixed;
@@ -212,10 +260,9 @@
 
       <div class="badge">
         <span class="badge-dot"></span>
-        清祎生日互动程序 · v3.0
+        清祎生日互动程序 · v5.0
       </div>
 
-      <!-- 这里改成“小清祎” -->
       <h1>Hi，小清祎 🎂</h1>
       <p class="subtitle">
         这是姐姐亲手写的一个小小“生日程序”，<br />
@@ -316,8 +363,18 @@
         <p class="small-text">随便选一个啦，反正姐姐都想一次性给你全套。</p>
       </div>
 
-      <!-- Step 7: 最终祝福 -->
+      <!-- Step 7: 仿 CSDN 祝福弹窗页 -->
       <div class="step" id="step7">
+        <p class="question">小彩蛋：姐姐的碎碎念弹窗来啦 💗</p>
+        <p class="tagline">会一条一条地弹出，不用点也会自己换下一条～</p>
+        <div class="popup-area" id="popupArea"></div>
+        <button class="btn btn-primary" id="startPopupBtn">开始播放祝福弹窗</button>
+        <button class="btn btn-ghost" id="skipToResultBtn">直接看最终祝福</button>
+        <p class="small-text">（提示：可以先看一轮再点「直接看最终祝福」，体验更完整 😆）</p>
+      </div>
+
+      <!-- Step 8: 最终祝福 -->
+      <div class="step" id="step8">
         <p class="result-title">🎉 生日程序运行结果：</p>
         <p class="result-text" id="resultText"></p>
         <button class="btn btn-primary" id="replayBtn">再玩一次 ✨</button>
@@ -334,12 +391,17 @@
 
     const startBtn = document.getElementById('startBtn');
     const replayBtn = document.getElementById('replayBtn');
+    const startPopupBtn = document.getElementById('startPopupBtn');
+    const skipToResultBtn = document.getElementById('skipToResultBtn');
+
     const moodButtons = document.querySelectorAll('.mood-btn');
     const styleButtons = document.querySelectorAll('.style-btn');
     const scoreButtons = document.querySelectorAll('.score-btn');
     const relButtons = document.querySelectorAll('.rel-btn');
     const wishButtons = document.querySelectorAll('.wish-btn');
+
     const resultTextEl = document.getElementById('resultText');
+    const popupArea = document.getElementById('popupArea');
 
     let selectedMood = '';
     let selectedStyle = '';
@@ -348,7 +410,6 @@
     let selectedWish = '';
 
     function goToStep(stepIndex) {
-      // stepIndex 从 1 开始
       steps.forEach((el, idx) => {
         el.classList.toggle('active', idx === stepIndex - 1);
       });
@@ -390,24 +451,101 @@
     wishButtons.forEach(btn => {
       btn.addEventListener('click', () => {
         selectedWish = btn.getAttribute('data-wish') || '';
-        showResult();
         goToStep(7);
-        startConfetti();
+        // 到弹窗页时不自动播放，让她自己点“开始播放祝福弹窗”
       });
     });
 
-    replayBtn.addEventListener('click', () => {
-      // 重置选择 & 回到首页
-      selectedMood = '';
-      selectedStyle = '';
-      selectedScore = '';
-      selectedRelation = '';
-      selectedWish = '';
-      resultTextEl.textContent = '';
-      goToStep(1);
-      stopConfetti();
+    // --- 祝福弹窗逻辑（仿 CSDN 弹窗依次出现） ---
+    const popupMessages = [
+      '愿你三冬暖，春不寒，天黑有灯，下雨有伞，路上总有人陪你慢慢走。',
+      '愿你永远相信自己值得被好好对待，也真的遇到这样的人和事。',
+      '愿你忙的时候不觉得累，闲的时候不觉得空，所有日子都不白过。',
+      '愿你被这个世界温柔以待，就算偶尔有点难过，也有人替你兜着风雨。',
+      '愿你永远保留一点小孩气，可以撒娇，可以胡闹，但永远被认真对待。',
+      '愿你心中有光，眼里有笑，睡前有期待，醒来有阳光。',
+      '愿你走过的每一段路，都能在回头时被自己温柔地夸一句“这一步也挺了不起”。',
+      '愿你新的一岁：不必太懂事，不用太乖，只要好好做自己就已经很棒了。'
+    ];
+
+    const popupColors = [
+      '#ffe4f0', '#ffe9c9', '#e9f5ff', '#e8f9f0',
+      '#fce4ec', '#fff7cc', '#e3f2fd', '#f3e5f5'
+    ];
+
+    let popupIndex = 0;
+    let popupTimer = null;
+
+    function showPopup(index) {
+      if (!popupArea) return;
+      popupArea.innerHTML = '';
+
+      const msg = popupMessages[index];
+      const card = document.createElement('div');
+      card.className = 'popup-card';
+
+      const bg = popupColors[index % popupColors.length];
+      card.style.background = bg;
+
+      // 标题 + 文本
+      const title = document.createElement('div');
+      title.className = 'popup-title';
+      title.textContent = `❤ 祝福弹窗 No.${index + 1}`;
+
+      const text = document.createElement('div');
+      text.className = 'popup-text';
+      text.textContent = msg;
+
+      card.appendChild(title);
+      card.appendChild(text);
+      popupArea.appendChild(card);
+    }
+
+    function startPopupSequence() {
+      if (!popupArea) return;
+
+      // 重置
+      stopPopupSequence();
+      popupIndex = 0;
+      startPopupBtn.disabled = true;
+      startPopupBtn.textContent = '祝福播放中...';
+
+      showPopup(popupIndex);
+
+      popupTimer = setInterval(() => {
+        popupIndex++;
+        if (popupIndex >= popupMessages.length) {
+          stopPopupSequence();
+          startPopupBtn.disabled = false;
+          startPopupBtn.textContent = '再看一轮祝福弹窗';
+          return;
+        }
+        showPopup(popupIndex);
+      }, 2600); // 每 2.6 秒切一条
+    }
+
+    function stopPopupSequence() {
+      if (popupTimer) {
+        clearInterval(popupTimer);
+        popupTimer = null;
+      }
+      if (popupArea) {
+        popupArea.innerHTML = '';
+      }
+    }
+
+    startPopupBtn.addEventListener('click', () => {
+      startPopupSequence();
     });
 
+    skipToResultBtn.addEventListener('click', () => {
+      stopPopupSequence();
+      showResult();
+      goToStep(8);
+      startConfetti();
+    });
+
+    // --- 最终结果文字 ---
     function showResult() {
       const moodText = selectedMood || '外向又可爱的小太阳';
       const styleText = selectedStyle || '按自己的节奏，舒服地过这一天';
@@ -433,7 +571,24 @@
       resultTextEl.textContent = finalMessage;
     }
 
-    // --- 简易彩带动画 ---
+    // 再玩一次
+    replayBtn.addEventListener('click', () => {
+      selectedMood = '';
+      selectedStyle = '';
+      selectedScore = '';
+      selectedRelation = '';
+      selectedWish = '';
+      resultTextEl.textContent = '';
+
+      stopPopupSequence();
+      stopConfetti();
+      startPopupBtn.disabled = false;
+      startPopupBtn.textContent = '开始播放祝福弹窗';
+
+      goToStep(1);
+    });
+
+    // --- 彩带动画 ---
     const canvas = document.getElementById('confettiCanvas');
     const ctx = canvas.getContext('2d');
     let confettiParticles = [];
