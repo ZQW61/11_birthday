@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>清祎生日互动程序</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #ffecd2, #fcb69f);
+    }
+
+    .container {
+      width: 100%;
+      max-width: 420px;
+      padding: 16px;
+    }
+
+    .card {
+      position: relative;
+      background: rgba(255, 255, 255, 0.96);
+      border-radius: 24px;
+      padding: 20px 18px 22px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(255, 105, 180, 0.08);
+      font-size: 12px;
+      color: #ff4f8b;
+      margin-bottom: 8px;
+    }
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: #ff4f8b;
+      margin-right: 6px;
+      animation: pulse 1.4s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 1; }
+      70% { transform: scale(1.6); opacity: 0; }
+      100% { transform: scale(1.6); opacity: 0; }
+    }
+
+    h1 {
+      font-size: 22px;
+      margin-bottom: 6px;
+      color: #333;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: #888;
+      margin-bottom: 16px;
+      line-height: 1.4;
+    }
+
+    .highlight-name {
+      color: #ff4f8b;
+      font-weight: 600;
+    }
+
+    .step {
+      display: none;
+      animation: fadeInUp 0.35s ease;
+    }
+
+    .step.active {
+      display: block;
+    }
+
+    @keyframes fadeInUp {
+      0% { opacity: 0; transform: translateY(12px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      border: none;
+      outline: none;
+      padding: 12px 14px;
+      margin-top: 10px;
+      border-radius: 999px;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.2s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #ff8ad4, #ff4f8b);
+      color: #fff;
+      box-shadow: 0 10px 24px rgba(255, 79, 139, 0.36);
+    }
+
+    .btn-primary:active {
+      transform: translateY(1px) scale(0.98);
+      box-shadow: 0 6px 18px rgba(255, 79, 139, 0.26);
+    }
+
+    .btn-ghost {
+      background: #fff7fb;
+      color: #ff4f8b;
+      border: 1px solid rgba(255, 79, 139, 0.2);
+    }
+
+    .btn-ghost:active {
+      transform: translateY(1px) scale(0.98);
+      box-shadow: 0 4px 10px rgba(255, 79, 139, 0.12);
+    }
+
+    .btn-row {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .small-text {
+      font-size: 12px;
+      color: #aaa;
+      margin-top: 10px;
+    }
+
+    .question {
+      font-size: 15px;
+      font-weight: 500;
+      color: #444;
+      margin-bottom: 8px;
+    }
+
+    .tagline {
+      font-size: 13px;
+      color: #999;
+      margin-bottom: 6px;
+    }
+
+    .result-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #333;
+    }
+
+    .result-text {
+      font-size: 14px;
+      color: #555;
+      line-height: 1.6;
+      white-space: pre-line;
+    }
+
+    .footer {
+      margin-top: 12px;
+      font-size: 12px;
+      color: #bbb;
+      text-align: center;
+    }
+
+    .emoji {
+      font-size: 18px;
+      margin-right: 4px;
+    }
+
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(2px);
+      opacity: 0.7;
+      z-index: -1;
+    }
+
+    .blob-1 {
+      width: 140px;
+      height: 140px;
+      background: #ffe1f0;
+      top: -60px;
+      right: -40px;
+    }
+
+    .blob-2 {
+      width: 110px;
+      height: 110px;
+      background: #ffe9c9;
+      bottom: -40px;
+      left: -30px;
+    }
+
+    #confettiCanvas {
+      pointer-events: none;
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="confettiCanvas"></canvas>
+  <div class="container">
+    <div class="card">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+
+      <div class="badge">
+        <span class="badge-dot"></span>
+        清祎生日互动程序 · v2.0
+      </div>
+
+      <h1>Hi，小外向清祎 🎂</h1>
+      <p class="subtitle">
+        这是姐姐亲手写的一个小小“生日程序”，<br />
+        只有你可以解锁哦。
+      </p>
+
+      <!-- Step 1: 启动程序 -->
+      <div class="step active" id="step1">
+        <p class="question">准备好接受来自姐姐的专属祝福了吗？</p>
+        <p class="tagline">点击下面的按钮启动程序 ⬇️</p>
+        <button class="btn btn-primary" id="startBtn">启动生日程序</button>
+        <p class="small-text">Tip：建议开声音 + 竖屏观看，仪式感更足 💖</p>
+      </div>
+
+      <!-- Step 2: Q1 心情 -->
+      <div class="step" id="step2">
+        <p class="question">Q1：那今天的你，是哪一种心情呢？</p>
+        <p class="tagline">点一个最贴近你的👇</p>
+        <div class="btn-row">
+          <button class="btn btn-ghost mood-btn" data-mood="元气满满、笑点拉满的小太阳">
+            ☀️ 今天超开心，元气爆棚
+          </button>
+          <button class="btn btn-ghost mood-btn" data-mood="有点累但还在努力冲刺的勇士">
+            ⚡ 有点累，但我很能打
+          </button>
+          <button class="btn btn-ghost mood-btn" data-mood="表面很嗨，内心也值得被好好抱抱的小朋友">
+            🎈 外向爱嗨，但也想被抱抱
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 3: Q2 生日过法 -->
+      <div class="step" id="step3">
+        <p class="question">Q2：如果今天给你选一种“生日过法”，你更想要哪种？</p>
+        <p class="tagline">随便选一个，程序会偷偷记住 😏</p>
+        <div class="btn-row">
+          <button class="btn btn-ghost style-btn" data-style="和一群喜欢的人一起吵吵闹闹、笑到停不下来">
+            🎉 跟朋友嗨翻天
+          </button>
+          <button class="btn btn-ghost style-btn" data-style="吃好吃的、拍好看的照片、留下很多纪念瞬间">
+            🍰 吃吃喝喝拍拍拍
+          </button>
+          <button class="btn btn-ghost style-btn" data-style="哪怕世界再吵，我也有一块只属于自己的小小安静角落">
+            🌙 安静chill一下
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 4: Q3 新一岁关键词 -->
+      <div class="step" id="step4">
+        <p class="question">Q3：最后一个问题 👇</p>
+        <p class="tagline">如果给自己的新一岁选一个关键词，你更想要：</p>
+        <div class="btn-row">
+          <button class="btn btn-ghost wish-btn" data-wish="勇敢">
+            💪 更勇敢
+          </button>
+          <button class="btn btn-ghost wish-btn" data-wish="快乐">
+            😆 更快乐
+          </button>
+          <button class="btn btn-ghost wish-btn" data-wish="被爱">
+            ❤️ 更被爱
+          </button>
+        </div>
+        <p class="small-text">随便选一个啦，反正姐姐都想一次性给你全套。</p>
+      </div>
+
+      <!-- Step 5: 最终祝福 -->
+      <div class="step" id="step5">
+        <p class="result-title">🎉 生日程序运行结果：</p>
+        <p class="result-text" id="resultText"></p>
+        <button class="btn btn-primary" id="replayBtn">再玩一次 ✨</button>
+        <p class="footer">
+          From：永远站你这边的姐姐 💌
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- DOM 获取 ---
+    const step1 = document.getElementById('step1');
+    const step2 = document.getElementById('step2');
+    const step3 = document.getElementById('step3');
+    const step4 = document.getElementById('step4');
+    const step5 = document.getElementById('step5');
+
+    const startBtn = document.getElementById('startBtn');
+    const replayBtn = document.getElementById('replayBtn');
+    const moodButtons = document.querySelectorAll('.mood-btn');
+    const styleButtons = document.querySelectorAll('.style-btn');
+    const wishButtons = document.querySelectorAll('.wish-btn');
+    const resultTextEl = document.getElementById('resultText');
+
+    let selectedMood = '';
+    let selectedStyle = '';
+    let selectedWish = '';
+
+    function goToStep(stepIndex) {
+      [step1, step2, step3, step4, step5].forEach((el, idx) => {
+        el.classList.toggle('active', idx === stepIndex - 1);
+      });
+      // 每次切换时滚动到顶部（防止手机上滚动条停在中间）
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    startBtn.addEventListener('click', () => {
+      goToStep(2);
+    });
+
+    moodButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        selectedMood = btn.getAttribute('data-mood') || '';
+        goToStep(3);
+      });
+    });
+
+    styleButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        selectedStyle = btn.getAttribute('data-style') || '';
+        goToStep(4);
+      });
+    });
+
+    wishButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        selectedWish = btn.getAttribute('data-wish') || '';
+        showResult();
+        goToStep(5);
+        startConfetti();
+      });
+    });
+
+    replayBtn.addEventListener('click', () => {
+      // 重置选择 & 回到首页
+      selectedMood = '';
+      selectedStyle = '';
+      selectedWish = '';
+      resultTextEl.textContent = '';
+      goToStep(1);
+      stopConfetti();
+    });
+
+    function showResult() {
+      const moodText = selectedMood || '外向又可爱的小太阳';
+      const styleText = selectedStyle || '按自己的节奏，舒服地过这一天';
+      const wishText = selectedWish || '快乐';
+
+      const finalMessage =
+        `亲爱的妹妹「张清祎」：\n\n` +
+        `系统检测到，你今天的状态是：${moodText}。\n` +
+        `理想的生日过法是：${styleText}。\n` +
+        `新一岁的关键词设定为：「${wishText}」。\n\n` +
+        `在姐姐这边，你永远不用故作坚强、也不用收起你的外向和真诚。\n\n` +
+        `愿你接下来的一年里：\n` +
+        `· 开心的时候有人一起高声大笑 🎉\n` +
+        `· 不开心的时候也有地方可以躲一躲、撒个娇 🤍\n` +
+        `· 所有努力都有回应，所有期待都有惊喜 ✨\n\n` +
+        `生日快乐啊，小清祎。\n` +
+        `就算全世界都很吵，你也永远可以来找姐姐。`;
+
+      resultTextEl.textContent = finalMessage;
+    }
+
+    // --- 简易彩带动画 ---
+    const canvas = document.getElementById('confettiCanvas');
+    const ctx = canvas.getContext('2d');
+    let confettiParticles = [];
+    let confettiTimer = null;
+    let resizeTimer = null;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(resizeCanvas, 120);
+    });
+
+    resizeCanvas();
+
+    function createConfetti() {
+      const count = 120;
+      const colors = ['#ff4f8b', '#ffb347', '#7dd3fc', '#a5b4fc', '#f9a8d4'];
+
+      confettiParticles = [];
+      for (let i = 0; i < count; i++) {
+        confettiParticles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * -canvas.height,
+          w: 6 + Math.random() * 4,
+          h: 8 + Math.random() * 6,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          speedY: 2 + Math.random() * 3,
+          speedX: -1 + Math.random() * 2,
+          rotation: Math.random() * Math.PI * 2,
+          rotationSpeed: -0.1 + Math.random() * 0.2
+        });
+      }
+    }
+
+    function drawConfetti() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      confettiParticles.forEach(p => {
+        p.x += p.speedX;
+        p.y += p.speedY;
+        p.rotation += p.rotationSpeed;
+
+        if (p.y > canvas.height + 20) {
+          p.y = -20;
+          p.x = Math.random() * canvas.width;
+        }
+
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rotation);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+        ctx.restore();
+      });
+    }
+
+    function loopConfetti() {
+      drawConfetti();
+      confettiTimer = requestAnimationFrame(loopConfetti);
+    }
+
+    function startConfetti() {
+      createConfetti();
+      if (confettiTimer) {
+        cancelAnimationFrame(confettiTimer);
+      }
+      loopConfetti();
+      setTimeout(() => {
+        stopConfetti();
+      }, 5000);
+    }
+
+    function stopConfetti() {
+      if (confettiTimer) {
+        cancelAnimationFrame(confettiTimer);
+        confettiTimer = null;
+      }
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  </script>
+</body>
+</html>
