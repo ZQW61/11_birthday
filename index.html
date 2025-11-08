@@ -74,11 +74,6 @@
       line-height: 1.4;
     }
 
-    .highlight-name {
-      color: #ff4f8b;
-      font-weight: 600;
-    }
-
     .step {
       display: none;
       animation: fadeInUp 0.35s ease;
@@ -176,11 +171,6 @@
       text-align: center;
     }
 
-    .emoji {
-      font-size: 18px;
-      margin-right: 4px;
-    }
-
     .blob {
       position: absolute;
       border-radius: 50%;
@@ -222,10 +212,11 @@
 
       <div class="badge">
         <span class="badge-dot"></span>
-        清祎生日互动程序 · v2.0
+        清祎生日互动程序 · v3.0
       </div>
 
-      <h1>Hi，小外向清祎 🎂</h1>
+      <!-- 这里改成“小清祎” -->
+      <h1>Hi，小清祎 🎂</h1>
       <p class="subtitle">
         这是姐姐亲手写的一个小小“生日程序”，<br />
         只有你可以解锁哦。
@@ -273,9 +264,43 @@
         </div>
       </div>
 
-      <!-- Step 4: Q3 新一岁关键词 -->
+      <!-- Step 4: Q3 给今年打分 -->
       <div class="step" id="step4">
-        <p class="question">Q3：最后一个问题 👇</p>
+        <p class="question">Q3：给自己这一年打个分的话，你会选：</p>
+        <p class="tagline">诚实一点，但也要温柔一点对自己 😌</p>
+        <div class="btn-row">
+          <button class="btn btn-ghost score-btn" data-score="80分以上，很棒了，再夸一嘴就更棒">
+            🌟 80 分左右：已经不错了
+          </button>
+          <button class="btn btn-ghost score-btn" data-score="90分以上，简直是自己的超级英雄版本">
+            💫 90 分：我真的很能打
+          </button>
+          <button class="btn btn-ghost score-btn" data-score="也许没有那么高分，但我每一步都很认真">
+            🤍 分数一般，但我很努力
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 5: Q4 和姐姐的关系标签 -->
+      <div class="step" id="step5">
+        <p class="question">Q4：那你和姐姐我们的关系，用一个标签来说的话更像：</p>
+        <p class="tagline">谨慎选择，姐姐会截图留存 😏</p>
+        <div class="btn-row">
+          <button class="btn btn-ghost rel-btn" data-rel="又互损又互宠的最佳损友+队友组合">
+            😂 互损互宠的好搭子
+          </button>
+          <button class="btn btn-ghost rel-btn" data-rel="可以随时撒娇、随时求助的安全基地">
+            🫶 想撒娇就会来找的安全基地
+          </button>
+          <button class="btn btn-ghost rel-btn" data-rel="是有点凶但又超护短的亲妈型姐姐">
+            😎 表面嫌弃、其实超护短的亲妈型姐姐
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 6: Q5 新一岁关键词 -->
+      <div class="step" id="step6">
+        <p class="question">Q5：最后一个问题 👇</p>
         <p class="tagline">如果给自己的新一岁选一个关键词，你更想要：</p>
         <div class="btn-row">
           <button class="btn btn-ghost wish-btn" data-wish="勇敢">
@@ -291,8 +316,8 @@
         <p class="small-text">随便选一个啦，反正姐姐都想一次性给你全套。</p>
       </div>
 
-      <!-- Step 5: 最终祝福 -->
-      <div class="step" id="step5">
+      <!-- Step 7: 最终祝福 -->
+      <div class="step" id="step7">
         <p class="result-title">🎉 生日程序运行结果：</p>
         <p class="result-text" id="resultText"></p>
         <button class="btn btn-primary" id="replayBtn">再玩一次 ✨</button>
@@ -305,28 +330,28 @@
 
   <script>
     // --- DOM 获取 ---
-    const step1 = document.getElementById('step1');
-    const step2 = document.getElementById('step2');
-    const step3 = document.getElementById('step3');
-    const step4 = document.getElementById('step4');
-    const step5 = document.getElementById('step5');
+    const steps = Array.from(document.querySelectorAll('.step'));
 
     const startBtn = document.getElementById('startBtn');
     const replayBtn = document.getElementById('replayBtn');
     const moodButtons = document.querySelectorAll('.mood-btn');
     const styleButtons = document.querySelectorAll('.style-btn');
+    const scoreButtons = document.querySelectorAll('.score-btn');
+    const relButtons = document.querySelectorAll('.rel-btn');
     const wishButtons = document.querySelectorAll('.wish-btn');
     const resultTextEl = document.getElementById('resultText');
 
     let selectedMood = '';
     let selectedStyle = '';
+    let selectedScore = '';
+    let selectedRelation = '';
     let selectedWish = '';
 
     function goToStep(stepIndex) {
-      [step1, step2, step3, step4, step5].forEach((el, idx) => {
+      // stepIndex 从 1 开始
+      steps.forEach((el, idx) => {
         el.classList.toggle('active', idx === stepIndex - 1);
       });
-      // 每次切换时滚动到顶部（防止手机上滚动条停在中间）
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -348,11 +373,25 @@
       });
     });
 
+    scoreButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        selectedScore = btn.getAttribute('data-score') || '';
+        goToStep(5);
+      });
+    });
+
+    relButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        selectedRelation = btn.getAttribute('data-rel') || '';
+        goToStep(6);
+      });
+    });
+
     wishButtons.forEach(btn => {
       btn.addEventListener('click', () => {
         selectedWish = btn.getAttribute('data-wish') || '';
         showResult();
-        goToStep(5);
+        goToStep(7);
         startConfetti();
       });
     });
@@ -361,6 +400,8 @@
       // 重置选择 & 回到首页
       selectedMood = '';
       selectedStyle = '';
+      selectedScore = '';
+      selectedRelation = '';
       selectedWish = '';
       resultTextEl.textContent = '';
       goToStep(1);
@@ -370,19 +411,23 @@
     function showResult() {
       const moodText = selectedMood || '外向又可爱的小太阳';
       const styleText = selectedStyle || '按自己的节奏，舒服地过这一天';
+      const scoreText = selectedScore || '在我心里永远都是满分的小孩';
+      const relationText = selectedRelation || '互损互宠、怎么都拆不散的最好搭子';
       const wishText = selectedWish || '快乐';
 
       const finalMessage =
-        `亲爱的妹妹「张清祎」：\n\n` +
+        `亲爱的小清祎：\n\n` +
         `系统检测到，你今天的状态是：${moodText}。\n` +
         `理想的生日过法是：${styleText}。\n` +
+        `在你给自己的这年打分里：${scoreText}。\n` +
+        `和姐姐之间的关系标签是：${relationText}。\n` +
         `新一岁的关键词设定为：「${wishText}」。\n\n` +
         `在姐姐这边，你永远不用故作坚强、也不用收起你的外向和真诚。\n\n` +
         `愿你接下来的一年里：\n` +
         `· 开心的时候有人一起高声大笑 🎉\n` +
         `· 不开心的时候也有地方可以躲一躲、撒个娇 🤍\n` +
         `· 所有努力都有回应，所有期待都有惊喜 ✨\n\n` +
-        `生日快乐啊，小清祎。\n` +
+        `生日快乐呀，小清祎。\n` +
         `就算全世界都很吵，你也永远可以来找姐姐。`;
 
       resultTextEl.textContent = finalMessage;
@@ -474,4 +519,3 @@
   </script>
 </body>
 </html>
-
